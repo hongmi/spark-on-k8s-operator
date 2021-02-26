@@ -1,0 +1,72 @@
+apiVersion: minio.min.io/v1
+kind: Tenant
+metadata:
+  creationTimestamp: null
+  name: minio-tenant-0
+  namespace: minio-tenant-0
+scheduler:
+  name: ""
+spec:
+  certConfig: {}
+  console:
+    consoleSecret:
+      name: minio-tenant-0-console-secret
+    image: minio/console:v0.5.2
+    metadata:
+      creationTimestamp: null
+      name: minio-tenant-0
+    replicas: 2
+    resources: {}
+  credsSecret:
+    name: minio-tenant-0-creds-secret
+  image: minio/minio:RELEASE.2021-02-07T01-31-02Z
+  imagePullSecret: {}
+  mountPath: /export
+  requestAutoCert: false
+  serviceName: minio-tenant-0-internal-service
+  zones:
+  - resources: {}
+    servers: 2
+    volumeClaimTemplate:
+      apiVersion: v1
+      kind: persistentvolumeclaims
+      metadata:
+        creationTimestamp: null
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+        storageClassName: alicloud-disk-efficiency
+      status: {}
+    volumesPerServer: 2
+status:
+  availableReplicas: 0
+  currentState: ""
+
+---
+apiVersion: v1
+data:
+  accesskey: YjA1MGY1NDMtMjQwNS00MjJmLWIwMDAtOGM4YjY5OTUyMmIw
+  secretkey: NTcyNjg1ODQtYThiNS00OWRlLWE3OGYtZTc5ZTk5NTE5NGU2
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: minio-tenant-0-creds-secret
+  namespace: minio-tenant-0
+
+---
+apiVersion: v1
+data:
+  CONSOLE_ACCESS_KEY: Mjk4MDIzZDgtMjExMy00YWY2LTliYzUtZTFhNmYzMDZlMDFi
+  CONSOLE_HMAC_JWT_SECRET: NmU1YThiMTMtMzYwYS00MjEwLWExOGMtNjNhNThlYjQ4ZWU2
+  CONSOLE_PBKDF_PASSPHRASE: ZjYwYzEwNmMtMTIxYy00MDg0LTg1ODItNDcyNjcxMWU3YTM3
+  CONSOLE_PBKDF_SALT: YTcxODUyZDQtZDUyNi00NjI2LWEwYmEtZDg0NDAyNTQ1NGI3
+  CONSOLE_SECRET_KEY: YTdiMjNlYTQtNTcwZi00NGJjLWIwMjgtMGU0MDdiYWE1YjQ5
+kind: Secret
+metadata:
+  creationTimestamp: null
+  name: minio-tenant-0-console-secret
+  namespace: minio-tenant-0
+

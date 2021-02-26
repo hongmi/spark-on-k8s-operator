@@ -1,0 +1,44 @@
+bin/beeline -u jdbc:hive2://spark-thrift-server:10000/
+
+
+bin/beeline -u jdbc:hive2://172.20.1.17:10016/
+
+
+
+kubectl create configmap metastore-cfg --dry-run=client --from-file=ca.cert --from-file=metastore-log4j2.properties --from-file=metastore-site.xml --from-file=core-site.xml -o yaml -n spark-operator | kubectl apply -f -
+
+
+
+
+cp /var/run/secrets/kubernetes.io/serviceaccount/ca.crt /usr/local/openjdk-8/jre/lib/security/cacerts
+
+
+ca cert reference: https://confluence.atlassian.com/kb/unable-to-connect-to-ssl-services-due-to-pkix-path-building-failed-error-779355358.html
+
+0. download jre cacerts from pod:metastore:/usr/local/openjdk-8/jre/lib/security/cacerts 
+1. download cert from minio-tls secret
+2. import minio-tls-cert into jre cacerts
+	keytool -import -trustcacerts -file 172.20.0.88.crt -alias 172.20.0.88crt -keystore ca.cert
+3. update configmap to contain cacerts
+	kubectl create configmap metastore-cfg --dry-run=client --from-file=ca.cert --from-file=metastore-log4j2.properties --from-file=metastore-site.xml --from-file=core-site.xml -o yaml -n spark-operator | kubectl apply -f -
+4. use volume mounts to pod:metastore:/usr/local/openjdk-8/jre/lib/security/cacerts 
+5. config metastore core-site.xml to use s3a: https://minio-tenant-108-zone-0-1.minio-tenant-108-hl.minio-tenant-108.svc.cluster.local:9000
+
+may can use svc:443? svc:9000 is not working.
+
+
+
+
+------------
+spark thrift
+
+1. create sts log4j.properties configmap
+kubectl create configmap sts-cfg --dry-run=client --from-file=ca.cert --from-file=sts-log4j.properties -o yaml -n spark-operator | kubectl apply -f -
+2. mounts volume
+
+
+
+
+create external table person (name string, age int) ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' location 's3a://hive/warehouse/person';
+select * from person;
+

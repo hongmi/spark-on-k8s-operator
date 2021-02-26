@@ -1,0 +1,121 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: spark-thrift-server
+  namespace: spark-operator
+  labels:
+    app: spark-thrift-server
+spec:
+  volumes:
+    - name: sts-cfg-vol
+      configMap:
+        name: sts-cfg
+  containers:
+  - name: spark-thrift-server
+    image: gcr.io/spark-operator/spark:v3.0.0-hadoop3
+    args:
+      - /opt/spark/bin/spark-submit
+      - --master 
+      - k8s://https://10.11.77.34:6443
+      - --class
+      - org.apache.spark.sql.hive.thriftserver.HiveThriftServer2
+      - --packages 
+      - com.amazonaws:aws-java-sdk-core:1.11.375,com.amazonaws:aws-java-sdk-core:1.11.375,org.apache.hadoop:hadoop-aws:3.2.0
+      - --deploy-mode
+      - client
+      - --name
+      - spark-sql
+      - --conf
+      - spark.executor.instances=1
+      - --conf
+      - spark.executor.memory=1G
+      - --conf
+      - spark.driver.memory=1G
+      - --conf
+      - spark.executor.cores=1
+      - --conf
+      - spark.kubernetes.namespace=spark-operator
+      - --conf
+      - spark.kubernetes.container.image=gcr.io/spark-operator/spark:v3.0.0-hadoop3
+      - --conf
+      - spark.kubernetes.authenticate.driver.serviceAccountName=spark-operator
+      - --conf
+      - spark.kubernetes.driver.pod.name=spark-thrift-server
+      - --conf 
+      - spark.kubernetes.file.upload.path=s3a://hive/spark-thrift-server
+      - --conf 
+      - spark.hadoop.hive.metastore.client.connect.retry.delay=5 
+      - --conf 
+      - spark.hadoop.hive.metastore.client.socket.timeout=1800 
+      - --conf 
+      - spark.hadoop.hive.metastore.uris=thrift://metastore:9083 
+      - --conf 
+      - spark.hadoop.hive.server2.enable.doAs=false 
+      - --conf 
+      - spark.hadoop.hive.server2.thrift.http.port=10002 
+      - --conf 
+      - spark.hadoop.hive.server2.thrift.port=10016
+      - --conf 
+      - spark.hadoop.hive.server2.transport.mode=binary 
+      - --conf 
+      - spark.hadoop.metastore.catalog.default=spark 
+      - --conf 
+      - spark.hadoop.hive.execution.engine=spark 
+      - --conf 
+      - spark.hadoop.hive.input.format=io.delta.hive.HiveInputFormat 
+      - --conf 
+      - spark.hadoop.hive.tez.input.format=io.delta.hive.HiveInputFormat 
+      - --conf 
+      - spark.sql.warehouse.dir=s3a:/hive/apps/spark/warehouse 
+      - --conf 
+      - spark.hadoop.fs.defaultFS=s3a://hive 
+      - --conf 
+      - spark.hadoop.fs.s3a.access.key=b050f543-2405-422f-b000-8c8b699522b0 
+      - --conf 
+      - spark.hadoop.fs.s3a.secret.key=57268584-a8b5-49de-a78f-e79e995194e6 
+      - --conf 
+      - spark.hadoop.fs.s3a.connection.ssl.enabled=false
+      - --conf 
+      - spark.hadoop.fs.s3a.endpoint=http://minio-tenant-0-zone-0-1.minio-tenant-0-hl.minio-tenant-0.svc.cluster.local:9000 
+      - --conf 
+      - spark.hadoop.fs.s3a.impl=org.apache.hadoop.fs.s3a.S3AFileSystem 
+      - --conf 
+      - spark.hadoop.fs.s3a.fast.upload=true 
+      - --conf 
+      - spark.hadoop.fs.s3a.path.style.access=true 
+      - --conf 
+      - "spark.driver.extraJavaOptions=-Divy.cache.dir=/tmp -Divy.home=/tmp -Dlog4j.debug=true -Dlog4j.configuration=file:log4j.properties" 
+    ports:
+    - containerPort: 4040
+      name: spark-ui
+      protocol: TCP
+    - containerPort: 10016
+      name: spark-thrift
+      protocol: TCP
+    volumeMounts:
+    - name: sts-cfg-vol
+      mountPath: /opt/spark/work-dir/log4j.properties
+      subPath: sts-log4j.properties
+  serviceAccount: spark-operator
+  serviceAccountName: spark-operator
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spark-thrift-server
+  namespace: spark-operator
+spec:
+  clusterIP: None
+  ports:
+  - name: spark-ui
+    port: 4040
+    protocol: TCP
+    targetPort: 4040
+  - name: spark-thrift
+    port: 10000
+    protocol: TCP
+    targetPort: 10016
+  selector:
+    app: spark-thrift-server
+  sessionAffinity: None
+  type: ClusterIP

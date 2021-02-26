@@ -1,0 +1,34 @@
+<configuration>
+    <property>
+        <name>fs.s3a.connection.ssl.enabled</name>
+	    <value>false</value>
+    </property>
+    <property>
+        <name>fs.defaultFS</name>
+        <value>s3a://hive</value>
+    </property>
+    <property>
+        <name>fs.s3a.path.style.access</name>
+        <value>true</value>
+    </property>
+    <property>
+        <name>fs.s3a.access.key</name>
+        <value>b050f543-2405-422f-b000-8c8b699522b0</value>
+    </property>
+    <property>
+        <name>fs.s3a.secret.key</name>
+        <value>57268584-a8b5-49de-a78f-e79e995194e6</value>
+    </property>
+    <property>
+        <name>fs.s3a.impl</name>
+        <value>org.apache.hadoop.fs.s3a.S3AFileSystem</value>
+    </property>
+    <property>
+        <name>fs.s3a.endpoint</name>
+        <value>http://minio-tenant-0-zone-0-1.minio-tenant-0-hl.minio-tenant-0.svc.cluster.local:9000</value>
+    </property>
+    <property>
+        <name>fs.s3a.fast.upload</name>
+        <value>true</value>
+    </property>
+</configuration>
